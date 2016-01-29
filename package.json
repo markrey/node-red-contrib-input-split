@@ -1,0 +1,31 @@
+{
+  "name": "node-red-contrib-input-split",
+  "version": "0.1.0",
+  "description": "Split an input on multiple outputs based on the provided configuration.",
+  "dependencies": {},
+  "license": "Apache-2.0",
+  "keywords": [
+    "node-red",
+    "flow",
+    "split",
+    "redconnect"
+  ],
+  "node-red": {
+    "nodes": {
+      "Input-split": "split.js"
+    }
+  },
+  "author": "Maurizio Carboni <mcarboni@redant.com>",
+  "contributors": [
+    "Maurizio Carboni <mcarboni@redant.com>"
+  ],
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/redconnect-io/node-red-contrib-input-split.git"
+  },
+  "bugs": {
+    "url": "https://github.com/redconnect-io/node-red-contrib-input-split/issues"
+  },
+  "homepage": "https://github.com/redconnect-io/node-red-contrib-input-split#readme"
+}

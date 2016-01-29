@@ -1,0 +1,281 @@
+<!--
+  Copyright 2015 mcarboni@redant.com
+
+  Licensed under the Apache License, Version 2.0 (the 'License');
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an 'AS IS' BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+
+<!-- <script type='text/x-red' data-template-name='sqlarray'>
+    <div class='form-row'>
+        <label style='vertical-align: top;'><i class='fa fa-tag'></i> Accepted Columns</label>
+        <div style='width:calc( 70% + 2em);display:inline-block'>
+            <div id='sql-array-columns' style='padding-bottom: 1em;'>
+                <h4 class='muted' id='sql-array-columns-any'>Any</h4>
+            </div>
+            <div>
+                <input type='text' id='sql-array-add-column-text' placeholder='Column Name' style='width:calc( 100% - 5em)'/>
+                <a class='editor-button fa fa-plus' id='sql-array-add-column'></a>
+            </div>
+        </div>
+    </div>
+    <input type='hidden' id='node-config-input-columns' value='[]' />
+</script>
+
+<script type='text/javascript'>
+    (function() {
+        function _removeColumn(columnName,cols,columnElement) {
+            return function () {
+                $(columnElement).remove();
+                var columnIndex = cols.indexOf(columnName);
+                if (columnIndex !== -1) {
+                    cols.splice(columnIndex,1);
+                }
+                if (cols.length === 0) {
+                    $('#sql-array-columns-any').show();
+                }
+                $('#node-config-input-columns').val(JSON.stringify(cols));
+            }
+        }
+        function _addColumnElement(columnName,cols) {
+            var columnElement =
+                    $('<div class="label label-info" style="margin : .1em .3em;" />')
+                        .append($('<span style="margin: 0.2em; font-size: 1.3em;line-height: 1.3em;" />').text(columnName));
+            columnElement.append($('<a class="btn btn-danger fa fa-times" style="padding:.2em .3em;margin: -.3em .1em .2em .1em; color: #FFF"/>')
+                .click(_removeColumn(columnName,cols,columnElement)));
+            $('#sql-array-columns').append(columnElement);
+        }
+		RED.nodes.registerType('sqlarray',{
+			category: 'config',
+			color:'rgb(148, 226, 252)',
+			defaults: {
+				columns: { value: '[]'  }
+			},
+            columns: '[]',
+			label: function() {
+                var cols = JSON.parse(this.columns);
+				return cols.length ? cols.join() : '*';
+			},
+			oneditprepare: function() {
+                var node=this;
+                node._columns = JSON.parse(this.columns);
+                if (node._columns.length > 0) {
+                    $('#sql-array-columns-any').hide();
+                    for (var i=0,l=node._columns.length;i<l;i++) {
+                        _addColumnElement(node._columns[i],node._columns);
+                    }
+                }
+                function addColumn() {
+                    var columnName = $('#sql-array-add-column-text').val().toLowerCase().trim();
+                    if (node._columns.length === 0) {
+                        $('#sql-array-columns-any').hide();
+                    }
+                    //Check if already exists
+                    if ((columnName.length > 0) && (node._columns.indexOf(columnName) === -1)) {
+                        $('#sql-array-add-column-text').val('');
+                        _addColumnElement(columnName,node._columns);
+                        node._columns.push(columnName);
+                        $('#node-config-input-columns').val(JSON.stringify(node._columns));
+                    }
+                }
+                $('#sql-array-add-column').click(addColumn);
+                $('#sql-array-add-column-text').on('keydown',function (ev) {
+                    //On backspace
+                    if ((ev.keyCode === 8)&&(this.value === '')) {
+                        //Delete the last one inserted
+                        if (node._columns.length > 0) {
+                            node._columns.pop();
+                            $('#sql-array-columns').children().last().remove();
+                            if (cols.length === 0) {
+                                $('#sql-array-columns-any').show();
+                            }
+                        }
+                    }
+                    //On Enter
+                    if (ev.keyCode === 13) {
+                        ev.preventDefault();
+                        ev.stopPropagation();
+                        addColumn();
+                    }
+                });
+                $('#node-config-input-columns').val(JSON.stringify(node._columns));
+            }
+		});
+    })();
+</script> -->
+
+<script type='text/x-red' data-template-name='Input Split'>
+    <div class='form-row'>
+       <label for='node-input-name'><i class='fa fa-tag'></i> Name</label>
+       <input type='text' id='node-input-name' placeholder='Name'>
+    </div>
+    <div class='form-row'>
+       <b>Properties to split</b>
+       <table className="table table-striped table-hover" id="input-split-properties-table" style="width:100%">
+           <thead>
+               <tr>
+                   <td>Input property</td>
+                   <td>Output</td>
+                   <td></td>
+               </tr>
+           </thead>
+           <tbody></tbody>
+       </table>
+       msg.<input type='text' id='input-split-properties-input' placeholder='payload.a'>
+       <a class='editor-button fa fa-plus' id='input-split-properties-add'></a>
+    </div>
+</script>
+
+<script type='text/x-red' data-help-name='Input Split'>
+    <h1 id="node-red-input-split">Input Split</h1>
+    <p>Split an input on multiple outputs based on the provided configuration.</p>
+        <p>The node have the following properties :</p>
+        <h3 id="properties-to-split">Properties to Split</h3>
+        <p>Here you define how many couples of input –&gt; outputs that you want, the value in output is always putted as payload.</p>
+    <h2 id="example">Example</h2>
+    <p>Assuming that our configuration is to split the input on :</p>
+    <blockquote>
+        <p>payload.a –&gt; output 1 <br>
+        payload.b –&gt; output 2 <br>
+        payload.c –&gt; output 3</p>
+    </blockquote>
+        <p>The below input will become</p>
+        <pre class="prettyprint"><code class="language-JSON hljs json">{
+    "<span class="hljs-attribute">payload</span>" : <span class="hljs-value">{
+        "<span class="hljs-attribute">a</span>" : <span class="hljs-value"><span class="hljs-number">2</span></span>,
+        "<span class="hljs-attribute">b</span>" : <span class="hljs-value"><span class="hljs-number">3</span></span>,
+        "<span class="hljs-attribute">c</span>" : <span class="hljs-value"><span class="hljs-number">4</span>
+    </span>}</span>,
+    "<span class="hljs-attribute">_other</span>" : <span class="hljs-value"><span class="hljs-number">4</span>
+    </span>}</code></pre>
+        <p>Output 1</p>
+    <pre class="prettyprint"><code class="language-JSON hljs json">{
+    "<span class="hljs-attribute">payload</span>" : <span class="hljs-value"><span class="hljs-number">2</span></span>,
+    "<span class="hljs-attribute">_other</span>" : <span class="hljs-value"><span class="hljs-number">4</span>
+    </span>}</code></pre>
+        <p>Output 2</p>
+    <pre class="prettyprint"><code class="language-JSON hljs json">{
+    "<span class="hljs-attribute">payload</span>" : <span class="hljs-value"><span class="hljs-number">3</span></span>,
+    "<span class="hljs-attribute">_other</span>" : <span class="hljs-value"><span class="hljs-number">4</span>
+    </span>}</code></pre>
+        <p>Output 3</p>
+    <pre class="prettyprint"><code class="language-JSON hljs json">{
+    "<span class="hljs-attribute">payload</span>" : <span class="hljs-value"><span class="hljs-number">4</span></span>,
+    "<span class="hljs-attribute">_other</span>" : <span class="hljs-value"><span class="hljs-number">4</span>
+    </span>}</code></pre>
+</script>
+
+<script type='text/javascript'>
+    (function() {
+        function _removeProp(val,node) {
+            return function () {
+                var pos;
+                if (~(pos = node.inputProps.indexOf(val.trim()))) {
+                    node.inputProps.splice(pos,1);
+                }
+                $(this).closest('tr').remove();
+            }
+        }
+        function buildElement(val,row,node) {
+            var deleteButton = $('<a class="btn btn-danger fa fa-times" style="padding:.2em .3em;margin: -.3em .1em .2em .1em; color: #FFF"/>')
+                                    .click(_removeProp(val,node));
+            //Add the new row
+            $('#input-split-properties-table>tbody')
+                .append($('<tr/>')
+                            .append($('<td/>').text(val))
+                            .append($('<td/>').text(row))
+                            .append($('<td/>')
+                                        .append(deleteButton)));
+        }
+        function insertInputProp(val,node) {
+            if (~node.inputProps.indexOf(val.trim())) {
+                return false;
+            }
+            var number = node.inputProps.push(val.trim());
+            buildElement(val,number,node);
+            return true;
+        }
+        function handleSorting(ev,ui) {
+            $('#input-split-properties-table>tbody>tr:not(.ui-sortable-helper):not(:hidden)').each(function(index,item){
+                var val = $(this).children(':eq(0)').text().trim();
+                if (val === '') {
+                    ui.helper.children(':eq(1)').text(index+1);
+                } else {
+                    //Update the column
+                    $(this).children(':eq(1)').text(index+1);
+                }
+            });
+        }
+		RED.nodes.registerType('Input Split',{
+			category: 'function',
+			color:'#87A980',
+			defaults: {
+                name: { value:'' },
+                inputProps: { value:[],validate : function(v){
+                    return v.length;
+                }},
+                outputs: { value: 0 }
+			},
+			inputs: 1,
+			outputs: 1,
+			icon: 'input-split.png',
+			label: function() {
+				return this.name||('Split input');
+			},
+			labelStyle: function() {
+				return this.name?'node_label_italic':'';
+			},
+			oneditprepare: function() {
+                var node=this;
+                console.log(this.inputProps);
+                for (var i=0,l=this.inputProps.length;i<l;i++) {
+                    buildElement(this.inputProps[i],i+1,this);
+                }
+                $('#input-split-properties-table>tbody').sortable({
+                    sort     : handleSorting,
+                    helper   : function(e, tr) {
+                        var $originals = tr.children();
+                        var $helper = tr.clone();
+                        $helper.children().each(function(index) {
+                            // Set helper cell sizes to match the original sizes
+                            $(this).width($originals.eq(index).width());
+                        });
+                        return $helper;
+                    },
+                    update   : function () {
+                        console.log($('#input-split-properties-table>tbody>tr'));
+                        node.inputProps =  $('#input-split-properties-table>tbody>tr').map(function(index,item){
+                            $(item).children(':eq(1)').text(index+1);
+                            return $.trim($(item).children(':eq(0)').text());
+                        }).get();
+                    }
+                });
+                $('#input-split-properties-add').click(function (ev) {
+                    var elem = $('#input-split-properties-input').get(0);
+                    if (insertInputProp(elem.value,node)) {
+                        elem.value = '';
+                    }
+                });
+                $('#input-split-properties-input').on('keypress',function(ev){
+                    if (ev.keyCode === 13) {
+                        if (insertInputProp(this.value,node)){
+                            this.value = '';
+                        }
+                    }
+                });
+            },
+			oneditsave: function() {
+				this.outputs = this.inputProps.length;
+			}
+		});
+    })();
+</script>
